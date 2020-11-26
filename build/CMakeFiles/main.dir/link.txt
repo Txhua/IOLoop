@@ -1,1 +1,0 @@
-/opt/rh/devtoolset-8/root/usr/bin/c++ CMakeFiles/main.dir/main.cpp.o -o main  -lprotobuf -lpthread -lz -lglog -lgflags Net/libIOLoop.a -lprotobuf -lpthread -lz -lglog -lgflags 

@@ -1,6 +1,0 @@
-/root/IOLoop/build/CMakeFiles/rebuild_cache.dir
-/root/IOLoop/build/CMakeFiles/edit_cache.dir
-/root/IOLoop/build/CMakeFiles/main.dir
-/root/IOLoop/build/Net/CMakeFiles/rebuild_cache.dir
-/root/IOLoop/build/Net/CMakeFiles/edit_cache.dir
-/root/IOLoop/build/Net/CMakeFiles/IOLoop.dir

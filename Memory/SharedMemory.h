@@ -12,6 +12,9 @@ namespace Memory
 {
 // 创建共享内存
 void *ShmMalloc(size_t size);
+void *ShmCalloc(size_t num, size_t _size);
+// 修改一段指定内存区域的保护属性。
+int ShmProtect(void *addr, int flags);
 // 释放共享内存
 void *ShmMapFree(void *ptr);
 

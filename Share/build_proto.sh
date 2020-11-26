@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 if [ ! -d "App" ]; then
   mkdir App
 fi

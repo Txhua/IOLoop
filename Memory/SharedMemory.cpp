@@ -75,6 +75,28 @@ void *shmMalloc(size_t size)
     return (char *)memory + sizeof(IOShareMemory);
 }
 
+void *ShmCalloc(size_t num, size_t _size)
+{
+    IOShareMemory object;
+    void *memory = nullptr;
+    void *ret_memory = nullptr;
+    size_t size = sizeof(IOShareMemory) + (num * _size);
+    memory = shareMemoryMmapCreate(&object, size, nullptr);
+    if(!memory){
+        return nullptr;
+    }
+    memcpy(memory, &object, sizeof(IOShareMemory));
+    ret_memory = (char *)memory + sizeof(IOShareMemory);
+    bzero(ret_memory, size - sizeof(IOShareMemory));
+    return ret_memory;
+}
+
+int ShmProtect(void *addr, int flags)
+{
+    IOShareMemory *object = (IOShareMemory *) ((char *) addr - sizeof(IOShareMemory));
+    return mprotect(object, object->size, flags);
+}
+
 void *ShmMapFree(void *ptr)
 {
     IOShareMemory *object = (IOShareMemory *)((char *)ptr - sizeof(IOShareMemory));

@@ -65,7 +65,7 @@ void Connector::connect()
 			case boost::system::errc::interrupted:
 			case boost::system::errc::already_connected:
 			{
-				// 正在连接
+				// ????????
 				connecting();
 				break;
 			}
@@ -75,7 +75,7 @@ void Connector::connect()
 			case boost::system::errc::connection_refused:
 			case boost::system::errc::network_unreachable:
 			{
-				// 尝试重新连接
+				// ????????????
 				retry();
 				break;
 			}

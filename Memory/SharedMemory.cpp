@@ -25,6 +25,8 @@ struct IOShareMemory
     void *memory;
 };
 
+
+
 static void *shareMemoryMmapCreate(IOShareMemory *object, size_t size, const char *mapfile)
 {
     void *memory = nullptr;
@@ -55,6 +57,11 @@ static void *shareMemoryMmapCreate(IOShareMemory *object, size_t size, const cha
     return memory;
 }
 
+static void SharedMemoryMmapFree(IOShareMemory *object)
+{
+    munmap(object->memory, object->size);
+}
+
 void *shmMalloc(size_t size)
 {
     IOShareMemory object;
@@ -66,6 +73,12 @@ void *shmMalloc(size_t size)
     }
     memcpy(memory, &object, sizeof(IOShareMemory));
     return (char *)memory + sizeof(IOShareMemory);
+}
+
+void *ShmMapFree(void *ptr)
+{
+    IOShareMemory *object = (IOShareMemory *)((char *)ptr - sizeof(IOShareMemory));
+    SharedMemoryMmapFree(object);
 }
 
 } 

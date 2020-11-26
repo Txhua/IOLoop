@@ -8,11 +8,13 @@
 
 namespace IOEvent
 {
-
-
 namespace Memory
 {
+// 创建共享内存
 void *ShmMalloc(size_t size);
+// 释放共享内存
+void *ShmMapFree(void *ptr);
+
 }
 
     

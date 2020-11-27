@@ -91,6 +91,18 @@ void *ShmCalloc(size_t num, size_t _size)
     return ret_memory;
 }
 
+void *Realloc(void *ptr, size_t new_size)
+{
+    IOShareMemory *object = (IOShareMemory *)((char *)ptr - sizeof(IOShareMemory));
+    void *memory = ShmMalloc(new_size);
+    if(!memory){
+        return nullptr;
+    }
+    memcpy(memory, ptr, object->size);
+    ShmMapFree(ptr);
+    return memory;
+}
+
 int ShmProtect(void *addr, int flags)
 {
     IOShareMemory *object = (IOShareMemory *) ((char *) addr - sizeof(IOShareMemory));

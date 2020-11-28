@@ -9,6 +9,7 @@
 #include <query.pb.h>
 #include <TimerQueue.h>
 #include <IOLoop.h>
+#include <thread>
 using namespace IOEvent;
 
 using QueryPtr = std::shared_ptr<QueryDef::Query> ;
@@ -123,16 +124,18 @@ int main(int argc, char* argv[])
 {
 	try
 	{
-		InitGlog();
-		LOG(INFO) << "main thread tid: " << std::this_thread::get_id();
-		boost::asio::ip::tcp::endpoint ep(boost::asio::ip::address::from_string("127.0.0.1"), 8888);
-		IOEvent::IOLoop loop;
-		IOEvent::TcpServer s(&loop, ep);
-		s.setThreadNum(5);
-		s.setMessageCallback([&](const TcpConnectionPtr &conn, Buffer *buf) {});
-		s.setConnectionCallback([&](const TcpConnectionPtr &conn) {});
-		s.start();
-		google::ShutdownGoogleLogging();
+		// InitGlog();
+		// LOG(INFO) << "main thread tid: " << std::this_thread::get_id();
+		// boost::asio::ip::tcp::endpoint ep(boost::asio::ip::address::from_string("127.0.0.1"), 8888);
+		// IOEvent::IOLoop loop;
+		// IOEvent::TcpServer s(&loop, ep);
+		// s.setThreadNum(5);
+		// s.setMessageCallback([&](const TcpConnectionPtr &conn, Buffer *buf) {});
+		// s.setConnectionCallback([&](const TcpConnectionPtr &conn) {});
+		// s.start();
+		// google::ShutdownGoogleLogging();
+		std::thread t1(std::bind([]{while(1);}));
+		std::cout << std::this_thread::get_id() << std::endl;
 	}
 	catch (std::exception &e)
 	{

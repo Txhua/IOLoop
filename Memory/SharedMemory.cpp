@@ -1,10 +1,10 @@
 #include "SharedMemory.h"
-#include "string.h"
+#include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 
-#define SHM_MMAP_FILE_LEN 64
+#define SHM_MMAP_FILE_LEN 65
 
 //
 // 当使用mmap映射文件或者对象到进程后,

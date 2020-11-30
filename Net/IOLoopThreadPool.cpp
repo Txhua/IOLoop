@@ -30,6 +30,7 @@ void IOLoopThreadPool::run()
 	for (uint32_t i = 0; i < numThreads_; ++i)
 	{
 		IOLoopThread *loopThread = new IOLoopThread();
+		loopThread->reactorId = i;
 		threads_.push_back(std::unique_ptr<IOLoopThread>(loopThread));
 		auto *iosPtr = loopThread->start();
 		assert(iosPtr != nullptr);

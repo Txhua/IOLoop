@@ -8,6 +8,7 @@ namespace IOEvent
 IOLoopThread::IOLoopThread()
 	:started_(false),
 	loop_(nullptr),
+	reactorId(0),
 	thread_(std::bind(&IOLoopThread::threadFunc, this))
 {
 

@@ -5,6 +5,9 @@
 #include <fcntl.h>
 
 #define SHM_MMAP_FILE_LEN 65
+#if defined(MAP_HUGETLB) 
+#define MAP_HUGE_PAGE 1
+#endif
 
 //
 // 当使用mmap映射文件或者对象到进程后,
@@ -46,6 +49,12 @@ static void *shareMemoryMmapCreate(IOShareMemory *object, size_t size, const cha
     }
     strncpy(object->mapfile, mapfile, SHM_MMAP_FILE_LEN);
     object->tmpfd = tmpfd;
+#endif
+
+#if defined(MAP_HUGE_PAGE)
+    if (size > 2 * 1024 * 1024) {
+        flag |= MAP_HUGETLB; // 按照大内存页面来分配内存
+    }
 #endif
     memory = mmap(nullptr, size, PROT_READ | PROT_WRITE, flag, tmpfd, 0);
     if(memory == MAP_FAILED)

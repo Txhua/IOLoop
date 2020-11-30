@@ -31,6 +31,7 @@ public:
 	void setMessageCallback(MessageCallback cb) { messageCallback_ = std::move(cb); }
 	void setThreadNum(int numThreads);
 	IOLoop *getLoop() const { return baseLoop_; }
+	std::shared_ptr<IOLoopThreadPool> getThreadPool() { return threadPool_;}
 private:
 	void removeConnection(const TcpConnectionPtr &conn);
 	void removeConnectionInThisThread(const TcpConnectionPtr &conn);

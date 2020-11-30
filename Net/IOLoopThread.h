@@ -22,9 +22,13 @@ public:
 	~IOLoopThread();
 	IOLoop *start();
 	void stop();
+public:
+	// reactor id
+	int32_t reactorId;
 private:
 	void threadFunc();
 private:
+	
 	std::atomic<bool> started_;
 	Thread thread_;
 	IOLoop *loop_;

@@ -38,7 +38,6 @@ public:
      */
     boost::asio::local::stream_protocol::socket *masterPipe_;
     boost::asio::local::stream_protocol::socket *workerPipe_;
-    Pipe *pipeObject_;
 private:
     std::atomic<bool> started_;
     std::unique_ptr<IOLoop> loop_;

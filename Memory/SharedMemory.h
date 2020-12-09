@@ -7,18 +7,12 @@
 
 namespace IOEvent
 {
-namespace Memory
-{
-
 void *ShmMalloc(size_t size);
 void *ShmCalloc(size_t num, size_t _size);
 void *Realloc(void *ptr, size_t new_size);
 int ShmProtect(void *addr, int flags);
 void *ShmMapFree(void *ptr);
-
-}
-
-    
+   
 } // ! namespace IOEvent
 
 

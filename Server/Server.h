@@ -18,25 +18,14 @@ public:
    explicit Server(IOLoop *loop, const boost::asio::ip::tcp::endpoint &endpoint);
    ~Server(); 
    Worker *getWorker(uint16_t worker_id);
-   void start();
-private:
-   void beforeStart();
-   void statrtManageProcess();
-   pid_t spawnEventWorker(Worker *worker);
-   int startEentWorker(Worker *worker);
 public:
-    /**
-     * reactor thread/process num
-     */
+    //reactor thread/process num
     uint16_t reactorNum_;
-    /**
-     * worker process num
-     */
+    //worker process num
     uint32_t workerNum_;
     uint32_t pageSize_;
 private:
     Worker *workers_;
-    Factory factory_;
     std::unique_ptr<TcpServer> tcpServer_;
 };
 

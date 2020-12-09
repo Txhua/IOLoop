@@ -3,11 +3,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <glog/logging.h>
+#include <File.h>
 
-#define SHM_MMAP_FILE_LEN 65
-#if defined(MAP_HUGETLB) 
-#define MAP_HUGE_PAGE 1
-#endif
 
 //
 // 当使用mmap映射文件或者对象到进程后,
@@ -20,109 +18,97 @@ namespace IOEvent
 namespace Memory
 {
 
-struct IOShareMemory 
+struct SharedMemory
 {
-    size_t size;
-    char mapfile[SHM_MMAP_FILE_LEN];
-    int tmpfd;
-    void *memory;
+    size_t size_;
+    static void *alloc(size_t size);
+    static void free(void *ptr);
+    static SharedMemory *fetch_object(void *ptr) 
+    {
+        return (SharedMemory *) ((char *) ptr - sizeof(SharedMemory));
+    }
 };
 
-
-
-static void *shareMemoryMmapCreate(IOShareMemory *object, size_t size, const char *mapfile)
+void *SharedMemory::alloc(size_t size) 
 {
-    void *memory = nullptr;
-    int32_t flag = MAP_SHARED;
-    int32_t tmpfd = -1;
-    memset(object, 0, sizeof(IOShareMemory));
+    void *mem;
+    int tmpfd = -1;
+    int flags = MAP_SHARED;
+    SharedMemory object;
+    size += sizeof(SharedMemory);
+
 #ifdef MAP_ANONYMOUS
-    flag |= MAP_ANONYMOUS;
+    flags |= MAP_ANONYMOUS;
 #else
-    if(mapfile == nullptr)
-    {
-        mapfile = "/dev/null";
-    }
-    if((tmpfd = open(mapfile, O_RDWR)) < 0)
-    {
+    File zerofile("/dev/zero", O_RDWR);
+    if (!zerofile.ready()) {
         return nullptr;
     }
-    strncpy(object->mapfile, mapfile, SHM_MMAP_FILE_LEN);
-    object->tmpfd = tmpfd;
+    tmpfd = zerofile.get_fd();
 #endif
-
-#if defined(MAP_HUGE_PAGE)
-    if (size > 2 * 1024 * 1024) {
-        flag |= MAP_HUGETLB; // 按照大内存页面来分配内存
-    }
+    mem = mmap(nullptr, size, PROT_READ | PROT_WRITE, flags, tmpfd, 0);
+#ifdef MAP_FAILED
+    if (mem == MAP_FAILED)
+#else
+    if (!mem)
 #endif
-    memory = mmap(nullptr, size, PROT_READ | PROT_WRITE, flag, tmpfd, 0);
-    if(memory == MAP_FAILED)
     {
+        LOG(ERROR) << "mmap failed size ： " <<  size;
         return nullptr;
+    } else {
+        object.size_ = size;
+        memcpy(mem, &object, sizeof(object));
+        return (char *) mem + sizeof(object);
     }
-    object->size = size;
-    object->memory = memory;
-    return memory;
 }
 
-static void SharedMemoryMmapFree(IOShareMemory *object)
+
+void SharedMemory::free(void *ptr) 
 {
-    munmap(object->memory, object->size);
+    SharedMemory *object = SharedMemory::fetch_object(ptr);
+    size_t size = object->size_;
+    if (munmap(object, size) < 0) 
+    {
+        LOG(ERROR)  << "munmap() failed " << object << size;
+    }
 }
+
+} // ! namespace Memory
+
+using IOEvent::Memory::SharedMemory;
 
 void *shmMalloc(size_t size)
 {
-    IOShareMemory object;
-    void *memory = nullptr;
-    size += sizeof(IOShareMemory);
-    memory = shareMemoryMmapCreate(&object, size, nullptr);
-    if(!memory){
-        return nullptr;
-    }
-    memcpy(memory, &object, sizeof(IOShareMemory));
-    return (char *)memory + sizeof(IOShareMemory);
+    return SharedMemory::alloc(size);
 }
 
 void *ShmCalloc(size_t num, size_t _size)
 {
-    IOShareMemory object;
-    void *memory = nullptr;
-    void *ret_memory = nullptr;
-    size_t size = sizeof(IOShareMemory) + (num * _size);
-    memory = shareMemoryMmapCreate(&object, size, nullptr);
-    if(!memory){
-        return nullptr;
-    }
-    memcpy(memory, &object, sizeof(IOShareMemory));
-    ret_memory = (char *)memory + sizeof(IOShareMemory);
-    bzero(ret_memory, size - sizeof(IOShareMemory));
-    return ret_memory;
+    return SharedMemory::alloc(num * _size);
 }
 
 void *Realloc(void *ptr, size_t new_size)
 {
-    IOShareMemory *object = (IOShareMemory *)((char *)ptr - sizeof(IOShareMemory));
-    void *memory = ShmMalloc(new_size);
-    if(!memory){
+    SharedMemory *object = SharedMemory::fetch_object(ptr);
+    void *new_ptr = shmMalloc(new_size);
+    if (new_ptr == nullptr) {
         return nullptr;
     }
-    memcpy(memory, ptr, object->size);
-    ShmMapFree(ptr);
-    return memory;
+    memcpy(new_ptr, ptr, object->size_);
+    SharedMemory::free(ptr);
+    return new_ptr;
 }
 
 int ShmProtect(void *addr, int flags)
 {
-    IOShareMemory *object = (IOShareMemory *) ((char *) addr - sizeof(IOShareMemory));
-    return mprotect(object, object->size, flags);
+    SharedMemory *object = SharedMemory::fetch_object(addr);
+    return mprotect(object, object->size_, flags);
 }
 
 void *ShmMapFree(void *ptr)
 {
-    IOShareMemory *object = (IOShareMemory *)((char *)ptr - sizeof(IOShareMemory));
-    SharedMemoryMmapFree(object);
+    SharedMemory::free(ptr);
 }
 
-} 
+
 } // ! namespace IOEvent

@@ -13,6 +13,7 @@
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/local/stream_protocol.hpp>
 #include <boost/asio.hpp>
+#include <File.h>
 using namespace IOEvent;
 
 using QueryPtr = std::shared_ptr<QueryDef::Query> ;
@@ -170,7 +171,8 @@ int main(int argc, char* argv[])
 			std::cout << std::endl;
 
 
-		} else { //parent
+		} 
+		else { //parent
 			childSocket.close(); //Close childSocket here use one bidirectional socket
 			std::vector<char> reply(request.size());
 			boost::asio::read(parentSocket, boost::asio::buffer(reply)); //Wait for child process to send message
@@ -183,6 +185,8 @@ int main(int argc, char* argv[])
 			boost::asio::write(parentSocket, boost::asio::buffer(dadRequest)); //Send child process response
 
            }
+		
+		File f(1, "/dev/null");
 
 	}
 	catch (std::exception &e)

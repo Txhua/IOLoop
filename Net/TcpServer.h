@@ -23,9 +23,10 @@ class TcpServer
 {
 	using ConnectionMap = std::map<std::string, TcpConnectionPtr>;
 public:
-	TcpServer(IOLoop *loop, const ip::tcp::endpoint &endpoint);
+	TcpServer(IOLoop *loop, const ip::tcp::endpoint &endpoint, const std::string &name = "IOEvent");
 	~TcpServer();
 	void start();
+	const std::string &name() const { return name_; }
 	const std::string &ipPort()const { return ipPort_; }
 	void setConnectionCallback(ConnectionCallback cb) { connectionCallback_ = std::move(cb); }
 	void setMessageCallback(MessageCallback cb) { messageCallback_ = std::move(cb); }
@@ -40,6 +41,7 @@ private:
 	IOLoop *baseLoop_;
 	uint32_t nextConnId_;
 	const std::string ipPort_;
+	const std::string name_;
 	std::atomic<bool> started_;
 	std::unique_ptr<Acceptor> accept_;
 	std::shared_ptr<IOLoopThreadPool> threadPool_;

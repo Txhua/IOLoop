@@ -39,21 +39,34 @@ void IOLoopThreadPool::run()
 }
 
 
-IOLoop * IOLoopThreadPool::getNextIOLoop()
+IOLoop * IOLoopThreadPool::getNextLoop()
 {
+	baseLoop_->assertInLoopThread();
 	assert(started_);
-	IOLoop* ios = baseLoop_;
+	IOLoop* loop = baseLoop_;
 	if (!io_contexts_.empty())
 	{
 		// round-robin
-		ios = io_contexts_[next_];
+		loop = io_contexts_[next_];
 		++next_;
 		if (static_cast<size_t>(next_) >= io_contexts_.size())
 		{
 			next_ = 0;
 		}
 	}
-	return ios;
+	return loop;
+}
+
+IOLoop *IOLoopThreadPool::getNextLoop(int fd)
+{
+	baseLoop_->assertInLoopThread();
+	assert(started_);
+	IOLoop* loop = baseLoop_;
+	if (!io_contexts_.empty())
+	{
+		loop = io_contexts_[fd % io_contexts_.size()];
+	}
+	return loop;
 }
 
 std::vector<IOLoop*> IOLoopThreadPool::getAllIOContext()

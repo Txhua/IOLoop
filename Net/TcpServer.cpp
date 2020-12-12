@@ -6,14 +6,18 @@
 #include <glog/logging.h>
 #include <functional>
 
+#define likely(x) __builtin_expect(!!(x), 1)
+#define unlikely(x) __builtin_expect(!!(x), 0)
+
 namespace IOEvent
 {
-TcpServer::TcpServer(IOLoop *loop, const ip::tcp::endpoint & endpoint)
+TcpServer::TcpServer(IOLoop *loop, const ip::tcp::endpoint & endpoint, const std::string &name)
 	:baseLoop_(loop),
 	accept_(std::make_unique<Acceptor>(loop, endpoint)),
 	threadPool_(std::make_shared<IOLoopThreadPool>(loop)),
 	started_(false),
 	ipPort_(endpoint.address().to_string()),
+	name_(name),
 	nextConnId_(1)
 {
 	accept_->setNewConnectCallback(std::bind(&TcpServer::newConnection, this, std::placeholders::_1));
@@ -55,7 +59,8 @@ void TcpServer::removeConnection(const TcpConnectionPtr& conn)
 void TcpServer::removeConnectionInThisThread(const TcpConnectionPtr & conn)
 {
 	baseLoop_->assertInLoopThread();
-	LOG(INFO) << "TcpServer::removeConnectionInThisThread : " << conn->name();
+ 	LOG(INFO) << "TcpServer::removeConnectionInLoop [" << name_
+           << "] - connection " << conn->name();
 	size_t n = connections_.erase(conn->name());
 	(void)n;
 	assert(n == 1);
@@ -67,13 +72,13 @@ void TcpServer::newConnection(ip::tcp::socket && socket)
 {
 	baseLoop_->assertInLoopThread();
 	char buf[64];
-	auto *ioLoop = threadPool_->getNextIOLoop();
-	ip::tcp::socket peerSocket(*ioLoop->getContext());
-	peerSocket.assign(ip::tcp::v4(), socket.release());
+	auto *ioLoop = threadPool_->getNextLoop(socket.native_handle());
 	snprintf(buf, sizeof(buf), "-%s#%d", ipPort_.c_str(), nextConnId_);
+	std::string conName = name_ + buf;
 	++nextConnId_;
-	TcpConnectionPtr conn = std::make_shared<TcpConnection>(ioLoop, std::move(peerSocket), buf);
-	connections_[buf] = conn;
+	LOG(INFO) << "TcpServer::newConnection [" << name_ << "] - new connection [" << conName << "] from " << socket.remote_endpoint().address().to_string();
+	TcpConnectionPtr conn = std::make_shared<TcpConnection>(ioLoop, std::move(ip::tcp::socket(*ioLoop->getContext(), ip::tcp::v4(), socket.native_handle())), conName);
+	connections_[conName] = conn;
 	conn->setConnectionCallback(connectionCallback_);
 	conn->setMessageCallback(messageCallback_);
 	conn->setCloseCallback(std::bind(&TcpServer::removeConnection, this, std::placeholders::_1));

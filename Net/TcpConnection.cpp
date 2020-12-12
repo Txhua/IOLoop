@@ -15,6 +15,7 @@ TcpConnection::TcpConnection(IOLoop *loop, ip::tcp::socket&& socket, const std::
 	state_(kConnecting)
 {
 	socket_.set_option(ip::tcp::no_delay(true));
+	socket_.set_option(socket_base::keep_alive(true));
 }
 
 TcpConnection::~TcpConnection()

@@ -58,7 +58,6 @@ ThreadPool::postFuture(_FuncType &&func, Args && ...args)
 		}
 		while (maxQueueSize_ > 0 && queue_.size() >= maxQueueSize_)
 		{
-			// 已满 (只有当 lambad 条件为 false 时调用 wait() 才会阻塞当前线程，并且在收到其他线程的通知后只有当 lambad 为 true 时才会被解除阻塞)
 			notFull_.wait(lock, [&]()->bool {return queue_.size() < maxQueueSize_ || !runing_; });
 		}
 		queue_.emplace([t]() {(*t)(); });

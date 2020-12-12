@@ -25,14 +25,13 @@ public:
 	IOLoopThreadPool(IOLoop *loop);
 	~IOLoopThreadPool();
 	void setThreadNum(int numThreads) { numThreads_ = numThreads; }
-	IOLoop *getNextIOLoop();
-	IOLoop *currentLoop() { return currentLoop_; }
+	IOLoop *getNextLoop();
+	IOLoop *getNextLoop(int fd);
 	std::vector<IOLoop *> getAllIOContext();
 	bool started() const { return started_; }
 	void run();
 private:
 	IOLoop *baseLoop_;
-	IOLoop *currentLoop_;
 	std::vector<std::unique_ptr<IOLoopThread>> threads_;
 	std::vector<IOLoop *> io_contexts_;
 	uint32_t next_;

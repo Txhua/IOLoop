@@ -10,6 +10,7 @@ Acceptor::Acceptor(IOLoop *loop, const Endpoint & endpoint)
 	:loop_(loop),
 	accept_(*loop->getContext(), endpoint)
 {
+	accept_.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
 }
 
 Acceptor::~Acceptor()

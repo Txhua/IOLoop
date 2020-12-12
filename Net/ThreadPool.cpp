@@ -51,7 +51,10 @@ void ThreadPool::post(Task task)
 	}
 	while ((maxQueueSize_ > 0 && maxQueueSize_ == queue_.size()))
 	{
-		notFull_.wait(lock, [&]()->bool {return queue_.size() < maxQueueSize_ ||!runing_; });
+		notFull_.wait(lock, [&]()->bool 
+		{ 
+			return queue_.size() < maxQueueSize_ || !runing_; 
+		});
 	}
 	queue_.push_back(std::move(task));
 	notEmpty_.notify_one();
@@ -78,7 +81,10 @@ ThreadPool::Task ThreadPool::take()
 	std::unique_lock<std::mutex> lock(mutex_);
 	while (queue_.empty() && runing_)
 	{
-		notEmpty_.wait(lock, [&]()->bool {return queue_.size() > 0; });
+		notEmpty_.wait(lock, [&]()->bool 
+		{
+			return queue_.size() > 0; 
+		});
 	}
 	Task task;
 	if (!queue_.empty())

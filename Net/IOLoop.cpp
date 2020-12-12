@@ -9,8 +9,8 @@ namespace IOEvent
 {
 
 //
-// one loop per thread 顾名思义就是每个线程有且只有一个io_context,所以IOLoop的构造函数会检测当前线程是否已经创建了IOEvent
-// 实现就是用到thread_local缓存一个IOLoop
+// one loop per thread 锟斤拷锟斤拷思锟斤拷锟斤拷锟矫匡拷锟斤拷叱锟斤拷锟斤拷锟街伙拷锟揭伙拷锟絠o_context,锟斤拷锟斤拷IOLoop锟侥癸拷锟届函锟斤拷锟斤拷锟解当前锟竭筹拷锟角凤拷锟窖撅拷锟斤拷锟斤拷锟斤拷IOEvent
+// 实锟街撅拷锟斤拷锟矫碉拷thread_local锟斤拷锟斤拷一锟斤拷IOLoop
 //
 
 thread_local IOLoop *t_inThisThreadLoop = nullptr;

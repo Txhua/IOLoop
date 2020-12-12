@@ -1,6 +1,6 @@
 #include "Signal.h"
 #include <glog/logging.h>
-#include <sys/signalfd.h>
+
 #define SIGNO_MAX 128
 
 namespace IOEvent
@@ -15,7 +15,6 @@ struct SignalData
 std::vector<SignalData> Signal::signals_;
 int32_t Signal::lock_ = 0;
 Signal::Signal()
-    :signalFd_(0)
 {
     signals_.reserve(SIGNO_MAX);
 }

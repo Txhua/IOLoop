@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include <vector>
 #include <signal.h>
-#include <functional>
+
 
 namespace IOEvent
 {
@@ -44,8 +44,6 @@ private:
     static void signalAsyncHandler(int32_t _signo);
     static void signalCallback(int32_t _signo);
 private:
-    sigset_t signalfdMask_;
-    int32_t signalFd_;
     static std::vector<SignalData> signals_;
     static int32_t lock_;
 };

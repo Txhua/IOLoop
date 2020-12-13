@@ -5,6 +5,7 @@
 #include "IOLoopThreadPool.h"
 #include <glog/logging.h>
 #include <functional>
+#include <boost/asio/basic_stream_socket.hpp>
 
 #define likely(x) __builtin_expect(!!(x), 1)
 #define unlikely(x) __builtin_expect(!!(x), 0)
@@ -72,12 +73,13 @@ void TcpServer::newConnection(ip::tcp::socket && socket)
 {
 	baseLoop_->assertInLoopThread();
 	char buf[64];
+	auto ff = socket.native_handle();
 	auto *ioLoop = threadPool_->getNextLoop(socket.native_handle());
 	snprintf(buf, sizeof(buf), "-%s#%d", ipPort_.c_str(), nextConnId_);
 	std::string conName = name_ + buf;
 	++nextConnId_;
 	LOG(INFO) << "TcpServer::newConnection [" << name_ << "] - new connection [" << conName << "] from " << socket.remote_endpoint().address().to_string();
-	TcpConnectionPtr conn = std::make_shared<TcpConnection>(ioLoop, std::move(ip::tcp::socket(*ioLoop->getContext(), ip::tcp::v4(), socket.native_handle())), conName);
+	TcpConnectionPtr conn = std::make_shared<TcpConnection>(ioLoop, std::move(ip::tcp::socket(*ioLoop->getContext(), ip::tcp::v4(), socket.release())), conName);
 	connections_[conName] = conn;
 	conn->setConnectionCallback(connectionCallback_);
 	conn->setMessageCallback(messageCallback_);

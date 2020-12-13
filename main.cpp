@@ -128,66 +128,20 @@ int main(int argc, char* argv[])
 {
 	try
 	{
-		// InitGlog();
-		// LOG(INFO) << "main thread tid: " << std::this_thread::get_id();
-		// boost::asio::ip::tcp::endpoint ep(boost::asio::ip::address::from_string("127.0.0.1"), 8888);
-		// IOEvent::IOLoop loop;
-		// IOEvent::TcpServer s(&loop, ep);
-		// s.setThreadNum(5);
-		// s.setMessageCallback([&](const TcpConnectionPtr &conn, Buffer *buf) {});
-		// s.setConnectionCallback([&](const TcpConnectionPtr &conn) {});
-		// s.start();
-		// google::ShutdownGoogleLogging();
-		// boost::asio::io_context io;
-		// boost::asio::ip::tcp::socket s(io);
-		// auto b = s.native_handle();
-		// std::thread t1(std::bind([]{while(1);}));
-		// std::cout << std::this_thread::get_id() << std::endl;
-		int socks[2];
-		socketpair(AF_UNIX, SOCK_STREAM, 0, socks);
-		boost::asio::local::stream_protocol protocel;
-		boost::asio::io_context io;
-		boost::asio::local::stream_protocol::socket parentSocket(io);
-		boost::asio::local::stream_protocol::socket childSocket(io);
-		parentSocket.assign(protocel, socks[1]);
-		childSocket.assign(protocel, socks[0]);
-
-		 std::string request("Dad I am your child, hello!");
-		std::string dadRequest("Hello son!");
-
-		//Create child process
-		pid_t pid = fork();
-		if( pid < 0 ){
-			std::cerr << "fork() erred\n";
-		} else if (pid == 0 ) { //child process
-			parentSocket.close(); // no need of parents socket handle, childSocket is bidirectional stream socket unlike pipe that has different handles for read and write
-			boost::asio::write(childSocket, boost::asio::buffer(request)); //Send data to the parent
-
-			std::vector<char> dadResponse(dadRequest.size(),0);
-			boost::asio::read(childSocket, boost::asio::buffer(dadResponse)); //Wait for parents response
-
-			std::cout << "Dads response: ";
-			std::cout.write(&dadResponse[0], dadResponse.size());
-			std::cout << std::endl;
-
-
-		} 
-		else { //parent
-			childSocket.close(); //Close childSocket here use one bidirectional socket
-			std::vector<char> reply(request.size());
-			boost::asio::read(parentSocket, boost::asio::buffer(reply)); //Wait for child process to send message
-
-			std::cout << "Child message: ";
-			std::cout.write(&reply[0], request.size());
-			std::cout << std::endl;
-
-			sleep(5); //Add 5 seconds delay before sending response to parent
-			boost::asio::write(parentSocket, boost::asio::buffer(dadRequest)); //Send child process response
-
-           }
-		
-		File f(1, "/dev/null");
-
+		InitGlog();
+		LOG(INFO) << "main thread tid: " << std::this_thread::get_id();
+		boost::asio::ip::tcp::endpoint ep(boost::asio::ip::address::from_string("127.0.0.1"), 8888);
+		IOEvent::IOLoop loop;
+		IOEvent::TcpServer s(&loop, ep);
+		s.setThreadNum(4);
+		s.setMessageCallback([&](const TcpConnectionPtr &conn, Buffer *buf) 
+		{
+			conn->send(buf);
+		});
+		s.setConnectionCallback([&](const TcpConnectionPtr &conn) {});
+		s.start();
+		loop.loop();
+		google::ShutdownGoogleLogging();
 	}
 	catch (std::exception &e)
 	{

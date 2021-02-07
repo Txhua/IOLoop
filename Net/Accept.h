@@ -11,7 +11,6 @@
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/noncopyable.hpp>
 #include <functional>
-#include <memory>
 
 namespace IOEvent
 {

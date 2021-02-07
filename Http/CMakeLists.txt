@@ -1,0 +1,7 @@
+cmake_minimum_required(VERSION 3.5)
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+project (HttpServer)
+set(CMAKE_CXX_STANDARD 17)
+file(GLOB PROJECT_SOURCE_FILES "*.cpp")
+add_library(${PROJECT_NAME} ${PROJECT_SOURCE_FILES} "BasicRouter.hpp" "RequestProcessor.hpp" "ChainRouter.hpp")
+target_link_libraries(${PROJECT_NAME} pthread z glog gflags)

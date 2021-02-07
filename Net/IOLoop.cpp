@@ -8,14 +8,9 @@
 namespace IOEvent
 {
 
-//
-// one loop per thread ����˼�����ÿ���߳�����ֻ��һ��io_context,����IOLoop�Ĺ��캯�����⵱ǰ�߳��Ƿ��Ѿ�������IOEvent
-// ʵ�־����õ�thread_local����һ��IOLoop
-//
-
 thread_local IOLoop *t_inThisThreadLoop = nullptr;
 IOLoop::IOLoop()
-	:ioContext_(),
+	:ioContext_(1),
 	timerQueue_(std::make_unique<TimerQueue>(this)),
 	work_(make_work_guard(ioContext_)),
 	threadId_(CurrentThread::tid()),

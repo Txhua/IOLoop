@@ -73,7 +73,6 @@ void TcpServer::newConnection(ip::tcp::socket && socket)
 {
 	baseLoop_->assertInLoopThread();
 	char buf[64];
-	auto ff = socket.native_handle();
 	auto *ioLoop = threadPool_->getNextLoop(socket.native_handle());
 	snprintf(buf, sizeof(buf), "-%s#%d", ipPort_.c_str(), nextConnId_);
 	std::string conName = name_ + buf;

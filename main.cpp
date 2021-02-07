@@ -11,9 +11,10 @@
 #include <IOLoop.h>
 #include <thread>
 #include <boost/asio/ip/tcp.hpp>
-#include <boost/asio/local/stream_protocol.hpp>
-#include <boost/asio.hpp>
 #include <File.h>
+#include <HttpServer.hpp>
+#include <HttpSession.hpp>
+#include <BasicRouter.hpp>
 using namespace IOEvent;
 
 using QueryPtr = std::shared_ptr<QueryDef::Query> ;
@@ -130,17 +131,76 @@ int main(int argc, char* argv[])
 	{
 		InitGlog();
 		LOG(INFO) << "main thread tid: " << std::this_thread::get_id();
-		boost::asio::ip::tcp::endpoint ep(boost::asio::ip::address::from_string("127.0.0.1"), 8888);
-		IOEvent::IOLoop loop;
-		IOEvent::TcpServer s(&loop, ep);
-		s.setThreadNum(4);
+		boost::asio::ip::tcp::endpoint ep(boost::asio::ip::address::from_string("127.0.0.1"), 8889);
+		using http_server = _Default::http_server_type;
+		boost::asio::io_context loop;
+		const auto& onAccept = [&](const boost::asio::ip::tcp::socket &s ) {
+			auto endpoint = s.remote_endpoint();
+		};
+		auto const address = boost::asio::ip::address_v4::any();
+		auto const port = static_cast<unsigned short>(8080);
+		using session = _Default::http_session;
+		using http_context = typename session::context_type;
+		using beast_http_request = typename session::request_type;
+		using asio_socket = typename session::socket_type;
+		//Http::BasicRouter<session> route{ std::regex::ECMAScript };
+
+
+		Http::BasicRouter<session> animals{ std::regex::ECMAScript };
+
+		animals.get("^/cat$", [](auto beast_http_request, auto context) { // '/animals/cat'
+			//context.send(make_200<beast::http::string_body>(beast_http_request, "me-ow\n", "text/html"));
+			std::cout << "hello " << std::endl;
+		});
+
+		animals.get("^/dog$", [](auto beast_http_request, auto context) { // '/animals/dog'
+			//context.send(make_200<beast::http::string_body>(beast_http_request, "aw! aw! Rrrrr\n", "text/html"));
+		});
+
+		animals.get("^/mouse$", [](auto beast_http_request, auto context) { // '/animals/mouse'
+			//context.send(make_200<beast::http::string_body>(beast_http_request, "...\n", "text/html"));
+		});
+
+		animals.get("^[/]??$", [](auto beast_http_request, auto context) { // '/animals' or '/animals/'
+			//context.send(make_200<beast::http::string_body>(beast_http_request, "animals home page\n", "text/html"));
+		});
+
+		//http_server::start(loop, ep, onAccept);
+		http_server s(loop, onAccept);
+
+		auto& route = s.basicRouter();
+
+		route.use("^/animals$", animals);
+		
+		route.get(R"(^/$)", [](beast_http_request r, http_context c) {
+			std::cout << "hello " << std::endl;
+		});
+		
+		s.start({ address, port });
+
+		
+		uint32_t pool_size = std::thread::hardware_concurrency() * 2;
+
+		// Run the I/O service on the requested number of threads
+		std::vector<std::thread> threads;
+		threads.reserve(pool_size > 0 ? pool_size : 4);
+		for (uint32_t i = 0; i < pool_size; i++)
+			threads.emplace_back(std::bind(static_cast<std::size_t(boost::asio::io_context::*)()>
+				(&boost::asio::io_context::run), std::ref(loop)));
+
+		//// Block until all the threads exit
+		for (auto& t : threads)
+			t.join();
+		//IOEvent::IOLoop loop_;
+		//IOEvent::TcpServer s2(&loop_, ep);
+		/*s.setThreadNum(4);
 		s.setMessageCallback([&](const TcpConnectionPtr &conn, Buffer *buf) 
 		{
 			conn->send(buf);
 		});
 		s.setConnectionCallback([&](const TcpConnectionPtr &conn) {});
 		s.start();
-		loop.loop();
+		loop.loop();*/
 		google::ShutdownGoogleLogging();
 	}
 	catch (std::exception &e)
